@@ -3,7 +3,8 @@
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 
 import {ColumnDef, createColumnHelper, getCoreRowModel, useVueTable, FlexRender} from "@tanstack/vue-table";
-import {ref} from "vue";
+import {h, ref} from "vue";
+import CustomCell from "./components/CustomCell.vue";
 
 type Person = {
   firstName: string
@@ -46,11 +47,10 @@ const columnHelper = createColumnHelper<Person>()
 const columns = [
   columnHelper.accessor('firstName', {
     header: () => 'Mon super firstname',
-    cell: info => info.getValue() + 'toto',
+    cell: info => h(CustomCell, {value:info.getValue()}),
   }),
   columnHelper.accessor('visits', {
     header: () => 'Visits',
-    cell: info => '<code>' + info + '</code>',
   }),
   columnHelper.accessor('status', {
     header: 'Status',
@@ -100,17 +100,15 @@ const table = useVueTable({
       </tr>
       </thead>
       <tbody>
-      <tr v-for="row in table.getRowModel().rows" :key="row.id">
-        <td v-for="cell in row.getVisibleCells()" :key="cell.id">
-<!--          <div v-if="cell.column.id === cell.column.id">
-            <p>{{cell.column}}</p>
-            <p>{{cell}}</p>
-            <p>toto: {{cell.getValue()}}</p>
-          </div>-->
+      <tr v-for="(row, index) in table.getRowModel().rows" :key="row.id">
+        <td v-for="(cell, cellIndex) in row.getVisibleCells()" :key="cell.id">
+<!--          <pre><code style="font-size: 10px">{{cell}}</code></pre>-->
+
           <FlexRender
               :render="cell.column.columnDef.cell"
               :props="cell.getContext()"
           />
+<!--          <CustomCell></CustomCell>-->
         </td>
       </tr>
       </tbody>
@@ -125,7 +123,6 @@ const table = useVueTable({
             :colSpan="header.colSpan"
         >
           <FlexRender
-              v-if="!header.isPlaceholder"
               :render="header.column.columnDef.footer"
               :props="header.getContext()"
           />
